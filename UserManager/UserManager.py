@@ -1,4 +1,5 @@
 from dataclasses import fields
+from typing import List
 
 import discord
 
@@ -12,7 +13,7 @@ class UserManager:
     def __init__(self, guild: discord.Guild, user_file_manager: FileManager):
         self.guild = guild
         self.file_manager = user_file_manager
-        self.user_list = []
+        self.user_list: List[User] = []
 
     async def create_user(self, member: discord.Member):
         if not isinstance(member, discord.Member):
@@ -37,3 +38,8 @@ class UserManager:
         for member in self.guild.members:
             await self.create_user(member)
 
+    def get_user_from_member(self, member: discord.Member) -> User:
+        for user_obj in self.user_list:
+            if user_obj.member.id == member.id:
+                return user_obj
+        return None
