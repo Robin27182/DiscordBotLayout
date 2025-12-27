@@ -1,13 +1,10 @@
-from discord.app_commands import commands
+from DataClasses.CommandData import CommandData
+from DataClasses.EventContext import EventContext
 
-from BotCommands.Command import Command
 
+class Hello:
+    def __init__(self, command_data: CommandData) -> None:
+        return
 
-class Hello(Command):
-    def get_description(self) -> str:
-        return "Say hello in a marvelous fashion!"
-
-    def execute(self):
-        async def executee(interaction):
-            await interaction.response.send_message("Hello!")
-        return executee
+    async def execute(self, context: EventContext) -> None:
+        await context.interaction.response.send_message("Hello!")

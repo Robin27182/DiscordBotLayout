@@ -1,3 +1,5 @@
+from typing import List, Callable, Coroutine, Tuple, Any
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -7,7 +9,20 @@ import os
 from pathlib import Path
 
 from BotCommands.GetJsonFile import GetJsonFile
+from CommandStructure.Authorizers.AOnCommandName import AOnCommandName
+from CommandStructure.Authorizers.AOnId import AOnId
+from CommandStructure.Authorizers.AOr import AOr
+from CommandStructure.Authorizers.Authorizer import Authorizer
+from CommandStructure.Dispatcher import Dispatcher
+from DataClasses.CommandProtocol import Command
+from DataClasses.EventContext import EventContext
+from DataClasses.EventType import EventType
+from CommandStructure.Triggers.Binding import SlashBinding
+from CommandTools.CommandBuilder import CommandBuilder
+from DataClasses.CommandData import CommandData
+from BotCommands.FavoriteOption import FavoriteOption
 from BotCommands.Hello import Hello
+from BotCommands.StartHelloCycle import StartHelloCycle
 from DataClasses.BotConfig import BotConfig
 from DataInterpreter.BotConfigInterpreter import BotConfigInterpreter
 from DataInterpreter.UserConfigInterpreter import UserConfigInterpreter
@@ -34,17 +49,32 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 bot_tree = bot.tree
 
 # Will be assigned in on_ready
-guild = None
-user_manager: UserManager = None
-bot_config = None
+guild: discord.Guild | None = None
+user_manager: UserManager | None = None
+bot_config: BotConfig | None = None
 
 # File managers
 user_config_manager = FileManager(UserConfigInterpreter(), base_dir=(current_dir / "DataStorage" / "UserConfig"))
 bot_config_manager = FileManager(BotConfigInterpreter(), base_dir=(current_dir / "DataStorage" / "BotConfig"))
 
-# Commands that are enabled
-enabled_commands = [GetJsonFile,
-                    Hello]
+# Commands that are enabled (| Any is added to shut up the warnings)
+command_info: List[Tuple[CommandBuilder, Authorizer | Any, SlashBinding]] = [
+    (CommandBuilder(FavoriteOption).with_args(["a", "b", "c"]),
+     AOnCommandName("choose-letter"),
+     SlashBinding("choose-letter", "Choose your favorite letter!")),
+
+    (CommandBuilder(Hello).with_args(),
+     AOnCommandName("hello"),
+     SlashBinding("hello", "Say hello to the bot!")),
+
+    (CommandBuilder(GetJsonFile).with_args(),
+     AOnCommandName("get-json-file"),
+     SlashBinding("get-json-file", "Get your personalized Json file!")),
+
+    (CommandBuilder(StartHelloCycle).with_args(),
+     AOr(AOnCommandName("hello-cycle"), AOnId(1)),
+     SlashBinding("hello-cycle", "Say hello way too much"))
+]
 
 @bot.event
 async def on_ready():
@@ -77,15 +107,32 @@ async def on_ready():
     for user in user_manager.user_list:
         await user.sync_roles()
 
-    # Init Commands
-    GetJsonFile(user_manager)
+    # Initialize data for commands
+    command_data = CommandData(user_manager, guild)
+    dispatcher = Dispatcher()
+    # Initialize commands
+    for command_builder, authorizer, binding in command_info:
+        # Create instance
+        command_instance: Command = command_builder.with_data(command_data).build()
+        dispatcher.register(command_instance, authorizer)
+        # Discord gets really, really picky about what kind of object you give it, this is the best way to do that.
+        # Takes the instance, so that the function changes with each loop, turns the function's async method into an async function.
+        async def callback(interaction: discord.Interaction):
+            context = EventContext(event_type=EventType.USER_COMMAND,
+                                       interaction=interaction,
+                                       )
+            await binding.emit(context)
 
-    # Initiate Enabled Commands
-    for command in enabled_commands:
-        execute = (app_commands.guilds(guild)(command.execute(command())))
-        bot_tree.command(name=command.__name__.lower(), description=command.get_description(command()))(execute)
+        callback: Callable[[discord.Interaction], Coroutine] = callback
+        execute = app_commands.guilds(guild)(callback)
+
+        bot_tree.command(
+            name=binding.get_name(),
+            description=binding.get_description()
+        )(execute)
 
     await bot.tree.sync(guild=guild)
+    print("Successfully Initialized")
 
 @bot.event
 async def on_member_update(member_before: discord.Member, member_after: discord.Member):
