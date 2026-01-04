@@ -1,6 +1,6 @@
 from DataClasses.CommandData import CommandData
 from DataClasses.EventContext import EventContext
-from DataInterpreter.UserConfigInterpreter import UserConfigInterpreter
+from FileManager.DataInterpreter.UserConfigInterpreter import UserConfigInterpreter
 
 class GetJsonFile:
     def __init__(self, command_data: CommandData):

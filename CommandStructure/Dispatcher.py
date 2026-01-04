@@ -1,9 +1,9 @@
-from typing import List, Tuple
+from typing import List, Tuple, Callable
 
-from CommandStructure.Authorizers.Authorizer import Authorizer
 from DataClasses.CommandProtocol import Command
 from DataClasses.EventContext import EventContext
 
+Authorizer = Callable[[EventContext], bool]
 
 class Singleton(type):
     _instances = {}
@@ -26,5 +26,5 @@ class Dispatcher(metaclass=Singleton):
 
     async def dispatch(self, event_context: EventContext):
         for command, authorizer in self._handlers:
-            if authorizer.get_authorization(event_context):
+            if authorizer(event_context):
                 await command.execute(event_context)

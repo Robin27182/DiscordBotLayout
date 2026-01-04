@@ -1,0 +1,73 @@
+Windows Task Scheduler setup — Discord Bot (FINAL)
+
+1) Open Task Scheduler
+   - Win + R → taskschd.msc
+
+2) Click "Create Task..." (NOT Create Basic Task)
+
+--------------------------------------------------
+General tab
+--------------------------------------------------
+Name:
+  Discord Bot
+
+Run whether user is logged on or not:
+  ✔ Enabled
+
+Run with highest privileges:
+  ✔ Enabled
+
+Configure for:
+  Windows 10 / Windows 11
+
+--------------------------------------------------
+Triggers tab
+--------------------------------------------------
+New Trigger:
+  Begin the task: At log on
+  Delay task for: 30 seconds
+  Enabled: ✔
+
+--------------------------------------------------
+Actions tab
+--------------------------------------------------
+Action:
+  Start a program
+
+Program/script:
+  C:\Users\Robin\Desktop\Python\DiscordBotLayout\.venv\Scripts\pythonw.exe
+
+Add arguments:
+  main.py
+
+Start in:
+  C:\Users\Robin\Desktop\Python\DiscordBotLayout
+
+--------------------------------------------------
+Conditions tab
+--------------------------------------------------
+Power:
+  ⛔ Start the task only if the computer is on AC power
+  ⛔ Stop if the computer switches to battery power
+
+(Leave everything else default)
+
+--------------------------------------------------
+Settings tab
+--------------------------------------------------
+✔ Allow task to be run on demand
+✔ If the task fails, restart every: 1 minute
+  Attempt to restart up to: 3 times
+
+⛔ Stop the task if it runs longer than
+⛔ If the running task does not end when requested, force it to stop
+
+--------------------------------------------------
+Usage
+--------------------------------------------------
+- Bot starts automatically after login
+- No PowerShell or Python windows appear
+- To stop the bot:
+    Task Scheduler → Right-click "Discord Bot" → End
+- To disable startup:
+    Right-click → Disable

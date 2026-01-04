@@ -1,9 +1,9 @@
 from typing import List
 
 from DataClasses.CommandData import CommandData
-from DataClasses.EventContext import EventContext
 from CommandTools.Container import Container
-from Querys.ButtonViewQuery import ButtonViewQuery
+from DataClasses.EventContext import EventContext
+from CommandTools.Querys.ButtonViewQuery import ButtonViewQuery
 
 
 class FavoriteOption:
