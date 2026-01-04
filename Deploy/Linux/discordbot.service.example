@@ -7,12 +7,12 @@ Wants=network-online.target
 Type=simple
 User=your_user
 WorkingDirectory=/home/your_user/discord-bot
+EnvironmentFile=/home/your_user/discord-bot/.env
+ExecStart=/home/your_user/python/DiscordBot/Deploy/Linux/run_bot.sh
 ExecStart=/home/your_user/discord-bot/Deploy/Linux/run_bot.sh
 Restart=always
 RestartSec=5
 
-# If you want systemd to load env, keep this:
-EnvironmentFile=/home/your_user/discord-bot/.env
 
 [Install]
 WantedBy=multi-user.target
